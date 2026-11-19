@@ -6,7 +6,7 @@ One row per image digest, sorted by critical findings. Filters: free text (image
 
 ## An image
 
-![An image page with demo data: severity counts, an end-of-life warning, and findings grouped by package with the version to update to](images/image.png)
+![An image page: severity counts, an end-of-life warning, and findings grouped by package with the version to update to](images/image.png)
 
 The page shows the registry, OS and digest, a warning when the OS is end of life, and the counts by severity. Clicking a count filters the list below to that severity.
 

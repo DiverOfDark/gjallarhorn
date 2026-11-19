@@ -4,7 +4,7 @@ The overview is built to tell you what to do next, not only how bad things are.
 
 ## Fix first
 
-The headline counts the critical findings in the five images that hold the most of them, out of all critical findings in the cluster: "Five images carry 27 of your 31 critical vulnerabilities." When there are no critical findings it uses high ones instead.
+The headline counts the critical findings in the five images that hold the most of them, out of all critical findings in the cluster: "Five images carry 63 of your 111 critical vulnerabilities." When there are no critical findings it uses high ones instead.
 
 The bar under the headline is every critical finding in the cluster. The numbered segments are the five images, sized by their share; the hatched part is everything else. Each segment and each row of the list opens that image.
 

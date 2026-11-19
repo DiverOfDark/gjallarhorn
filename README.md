@@ -2,9 +2,9 @@
 
 Gjallarhorn is a read-only dashboard over the reports the [Trivy Operator](https://github.com/aquasecurity/trivy-operator) writes to a Kubernetes cluster. It answers one question first: which few images hold most of your critical vulnerabilities, so you know what to update next.
 
-![The Gjallarhorn overview with demo data: five images carry 27 of 31 critical vulnerabilities, ranked, with totals by severity and namespaces below](docs/images/overview.png)
+![The Gjallarhorn overview on a homelab cluster: five images carry 63 of 111 critical vulnerabilities, ranked, with totals by severity and namespaces below](docs/images/overview.png)
 
-It is one Rust binary that reads the `aquasecurity.github.io` reports, aggregates them in memory and serves a JSON API plus an embedded Svelte frontend. The screenshot uses the made-up data in `fixtures/demo.json`.
+It is one Rust binary that reads the `aquasecurity.github.io` reports, aggregates them in memory and serves a JSON API plus an embedded Svelte frontend.
 
 ## Features
 
