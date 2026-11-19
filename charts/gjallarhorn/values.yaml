@@ -1,0 +1,53 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/diverofdark/gjallarhorn
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8080
+
+# The dashboard has no login of its own. Keep the ingress on a private
+# network, or put an authenticating proxy in front of it.
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  labels: {}
+  hosts:
+    - host: gjallarhorn.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# Seconds between reads of the Trivy reports. The UI also has a refresh button.
+refreshSeconds: 120
+
+rbac:
+  # ClusterRole with get/list on the Trivy report types and list on
+  # ReplicaSets. Nothing else, and no Secrets.
+  create: true
+
+serviceAccount:
+  annotations: {}
+
+# tracing-subscriber filter, e.g. "gjallarhorn=debug,warn".
+logLevel: "gjallarhorn=info,warn"
+
+# Additional Kubernetes manifests to render with this release. Entries are
+# evaluated with Helm's tpl, so values like
+# {{ include "gjallarhorn.fullname" . }} can be used inside them.
+additionalObjects: []
+
+podAnnotations: {}
+podLabels: {}
+
+resources: {}
+  # requests: { cpu: 20m, memory: 96Mi }
+  # limits: { memory: 384Mi }
+nodeSelector: {}
+tolerations: []
+affinity: {}

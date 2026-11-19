@@ -1,0 +1,7 @@
+target/
+.git/
+.github/
+charts/
+README.md
+web/node_modules/
+web/dist/

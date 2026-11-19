@@ -1,0 +1,6 @@
+apiVersion: v2
+name: gjallarhorn
+description: Read-only web dashboard over the reports the Trivy Operator writes to a Kubernetes cluster
+version: 0.1.0
+appVersion: "0.1.0"
+type: application

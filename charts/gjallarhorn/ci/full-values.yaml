@@ -1,0 +1,35 @@
+# Exercises every template; used by CI's `helm template` check.
+ingress:
+  enabled: true
+  className: traefik
+  labels:
+    example.com/expose: internal
+  annotations:
+    cert-manager.io/cluster-issuer: acme
+  hosts:
+    - host: security.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts: [security.example.com]
+      secretName: security-tls
+refreshSeconds: 60
+podAnnotations:
+  example.com/annotation: "true"
+podLabels:
+  example.com/label: "true"
+resources:
+  requests: { cpu: 20m, memory: 96Mi }
+  limits: { memory: 384Mi }
+nodeSelector:
+  kubernetes.io/os: linux
+tolerations:
+  - { key: example, operator: Exists, effect: NoSchedule }
+additionalObjects:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: '{{ include "gjallarhorn.fullname" . }}-extra'
+    data:
+      hello: world
