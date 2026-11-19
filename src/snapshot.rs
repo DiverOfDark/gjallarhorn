@@ -464,6 +464,51 @@ pub struct Inputs {
     pub errors: Vec<String>,
 }
 
+/// A cluster's reports in one JSON file, for demos and local work without a
+/// cluster. Each list holds the objects as `kubectl get -o json` prints them.
+#[derive(Debug, Default, serde::Deserialize)]
+#[serde(rename_all = "camelCase", default, deny_unknown_fields)]
+pub struct Fixture {
+    pub vulnerability_reports: Vec<DynamicObject>,
+    pub config_audit_reports: Vec<DynamicObject>,
+    pub cluster_config_audit_reports: Vec<DynamicObject>,
+    pub rbac_assessment_reports: Vec<DynamicObject>,
+    pub cluster_rbac_assessment_reports: Vec<DynamicObject>,
+    pub exposed_secret_reports: Vec<DynamicObject>,
+    pub cluster_compliance_reports: Vec<DynamicObject>,
+    /// ReplicaSet ownership, so reports show under their Deployment.
+    pub replica_sets: Vec<FixtureReplicaSet>,
+}
+
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct FixtureReplicaSet {
+    pub namespace: String,
+    pub name: String,
+    pub owner_kind: String,
+    pub owner_name: String,
+}
+
+impl From<Fixture> for Inputs {
+    fn from(f: Fixture) -> Self {
+        Inputs {
+            vulns: f.vulnerability_reports,
+            config: f.config_audit_reports,
+            cluster_config: f.cluster_config_audit_reports,
+            rbac: f.rbac_assessment_reports,
+            cluster_rbac: f.cluster_rbac_assessment_reports,
+            secrets: f.exposed_secret_reports,
+            compliance: f.cluster_compliance_reports,
+            replicasets: f
+                .replica_sets
+                .into_iter()
+                .map(|r| ((r.namespace, r.name), (r.owner_kind, r.owner_name)))
+                .collect(),
+            errors: vec![],
+        }
+    }
+}
+
 pub async fn collect(client: &Client) -> Result<Snapshot> {
     let start = Instant::now();
     let (vulns, cfg, ccfg, rbac, crbac, secrets, comp, rs) = tokio::join!(
@@ -1367,6 +1412,21 @@ mod tests {
         assert!(!d.pending);
         assert_eq!((d.pass, d.fail), (3, 1));
         assert_eq!(d.controls[0].total_fail, Some(4));
+    }
+
+    #[test]
+    fn demo_fixture_loads_and_tells_the_fix_first_story() {
+        let text =
+            std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/demo.json"))
+                .unwrap();
+        let fixture: Fixture = serde_json::from_str(&text).unwrap();
+        let snap = build(fixture.into());
+        assert!(snap.images.len() >= 10);
+        assert!(snap.overview.severity.critical > 0);
+        assert!(!snap.misconfigs.is_empty());
+        assert!(!snap.secrets.is_empty());
+        assert!(snap.workloads.iter().any(|w| w.kind == "Deployment"));
+        assert!(snap.compliance.iter().any(|c| !c.pending));
     }
 
     #[test]

@@ -1,7 +1,7 @@
 mod raw;
 mod snapshot;
 
-use std::{net::SocketAddr, sync::Arc, time::Duration};
+use std::{net::SocketAddr, path::PathBuf, sync::Arc, time::Duration};
 
 use anyhow::Result;
 use axum::{
@@ -32,6 +32,42 @@ struct Args {
     /// Kubeconfig context to use (defaults to current context / in-cluster).
     #[arg(long, env = "GJALLARHORN_CONTEXT")]
     context: Option<String>,
+    /// Serve reports from a JSON file instead of a cluster (see fixtures/).
+    #[arg(long, env = "GJALLARHORN_FIXTURES", conflicts_with = "context")]
+    fixtures: Option<PathBuf>,
+}
+
+/// Where reports come from.
+enum Source {
+    Cluster(Client),
+    Fixtures(PathBuf),
+}
+
+impl Source {
+    async fn collect(&self) -> Result<Snapshot> {
+        match self {
+            Source::Cluster(client) => snapshot::collect(client).await,
+            Source::Fixtures(path) => {
+                let text = tokio::fs::read_to_string(path).await?;
+                let fixture: snapshot::Fixture = serde_json::from_str(&text)?;
+                Ok(snapshot::build(fixture.into()))
+            }
+        }
+    }
+}
+
+async fn connect(context: Option<&str>) -> Result<Client> {
+    Ok(match context {
+        Some(ctx) => {
+            let cfg = Config::from_kubeconfig(&KubeConfigOptions {
+                context: Some(ctx.to_string()),
+                ..Default::default()
+            })
+            .await?;
+            Client::try_from(cfg)?
+        }
+        None => Client::try_default().await?,
+    })
 }
 
 #[derive(Default)]
@@ -57,21 +93,17 @@ async fn main() -> Result<()> {
         .init();
     let args = Args::parse();
 
-    let client = match &args.context {
-        Some(ctx) => {
-            let cfg = Config::from_kubeconfig(&KubeConfigOptions {
-                context: Some(ctx.clone()),
-                ..Default::default()
-            })
-            .await?;
-            Client::try_from(cfg)?
+    let source = match &args.fixtures {
+        Some(path) => {
+            tracing::info!("serving reports from {}", path.display());
+            Source::Fixtures(path.clone())
         }
-        None => Client::try_default().await?,
+        None => Source::Cluster(connect(args.context.as_deref()).await?),
     };
 
     let state: St = Arc::new(AppState::default());
     tokio::spawn(refresh_loop(
-        client,
+        source,
         state.clone(),
         Duration::from_secs(args.refresh),
     ));
@@ -136,10 +168,10 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-async fn refresh_loop(client: Client, state: St, every: Duration) {
+async fn refresh_loop(source: Source, state: St, every: Duration) {
     loop {
         *state.refreshing.write().await = true;
-        match snapshot::collect(&client).await {
+        match source.collect().await {
             Ok(s) => {
                 tracing::info!(
                     images = s.images.len(),
