@@ -2,7 +2,9 @@
 
 Gjallarhorn is a read-only dashboard over the reports the [Trivy Operator](https://github.com/aquasecurity/trivy-operator) writes to a Kubernetes cluster. It answers one question first: which few images hold most of your critical vulnerabilities, so you know what to update next.
 
-It is one Rust binary that reads the `aquasecurity.github.io` reports, aggregates them in memory and serves a JSON API plus an embedded Svelte frontend.
+![The Gjallarhorn overview with demo data: five images carry 27 of 31 critical vulnerabilities, ranked, with totals by severity and namespaces below](docs/images/overview.png)
+
+It is one Rust binary that reads the `aquasecurity.github.io` reports, aggregates them in memory and serves a JSON API plus an embedded Svelte frontend. The screenshot uses the made-up data in `fixtures/demo.json`.
 
 ## Features
 
@@ -33,18 +35,16 @@ Gjallarhorn needs the Trivy Operator installed and scanning. Its ClusterRole can
 
 There is no login. The page shows which images in your cluster are vulnerable, so keep the ingress on a private network or put an authenticating proxy in front of it.
 
-## Configuration
+## Documentation
 
-| Flag | Environment | Default | |
-|---|---|---|---|
-| `--bind` | `GJALLARHORN_BIND` | `127.0.0.1:8080` | Address to listen on. The image sets `0.0.0.0:8080`. |
-| `--refresh` | `GJALLARHORN_REFRESH` | `120` | Seconds between reads of the reports. |
-| `--context` | `GJALLARHORN_CONTEXT` | current | Kubeconfig context; in a pod the service account is used. |
-| | `RUST_LOG` | `info` | Log filter, e.g. `gjallarhorn=debug,warn`. |
+The full documentation is at **<https://diverofdark.github.io/gjallarhorn/>**:
 
-## Endpoints
+- [Overview](https://diverofdark.github.io/gjallarhorn/overview.html): how the "fix first" ranking works.
+- [Images and CVEs](https://diverofdark.github.io/gjallarhorn/images.html), [workloads](https://diverofdark.github.io/gjallarhorn/workloads.html), [misconfigurations and RBAC](https://diverofdark.github.io/gjallarhorn/misconfigurations.html), [exposed secrets](https://diverofdark.github.io/gjallarhorn/secrets.html) and [compliance](https://diverofdark.github.io/gjallarhorn/compliance.html).
+- [How findings are counted](https://diverofdark.github.io/gjallarhorn/counting.html).
+- [Configuration](https://diverofdark.github.io/gjallarhorn/configuration.html), [endpoints](https://diverofdark.github.io/gjallarhorn/endpoints.html) and [permissions](https://diverofdark.github.io/gjallarhorn/permissions.html).
 
-`/healthz`, and under `/api`: `overview`, `images`, `images/{id}`, `cves`, `cves/{id}`, `workloads`, `misconfigs`, `secrets`, `compliance`, `status`, and `POST refresh`.
+Its source is in [`docs/`](docs/SUMMARY.md), built with [mdBook](https://rust-lang.github.io/mdBook/): `mdbook serve` shows it locally.
 
 ## Development
 
@@ -54,6 +54,6 @@ cargo test
 cargo run -- --bind 127.0.0.1:18080
 ```
 
-With a kubeconfig, Gjallarhorn reads that cluster. For frontend work run `npm run dev` in `web/` with the backend on port 18080; Vite proxies `/api` to it.
+With a kubeconfig, Gjallarhorn reads that cluster. `--fixtures fixtures/demo.json` serves made-up data without a cluster. For frontend work run `npm run dev` in `web/` with the backend on port 18080; Vite proxies `/api` to it.
 
 The aggregation is in `src/snapshot.rs`. `build()` is pure, and its tests feed it report fixtures shaped like the operator's output.

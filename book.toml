@@ -1,0 +1,16 @@
+[book]
+title = "Gjallarhorn"
+description = "A read-only dashboard over the reports the Trivy Operator writes"
+language = "en"
+src = "docs"
+
+[build]
+build-dir = "target/book"
+create-missing = false
+
+[output.html]
+default-theme = "navy"
+preferred-dark-theme = "navy"
+site-url = "/gjallarhorn/"
+git-repository-url = "https://github.com/DiverOfDark/gjallarhorn"
+edit-url-template = "https://github.com/DiverOfDark/gjallarhorn/edit/master/{path}"
