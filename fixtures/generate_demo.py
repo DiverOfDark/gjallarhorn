@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Write fixtures/demo.json: a made-up homelab for screenshots and local work.
+"""Write fixtures/demo.json: a made-up homelab for demos and local work.
 
 Image names are fictional (ghcr.io/example/...) and CVE ids are invented, so
 nothing here describes real software. Publication dates are relative to the

@@ -6,7 +6,7 @@ cargo test
 cargo run -- --bind 127.0.0.1:18080
 ```
 
-With a kubeconfig, Gjallarhorn reads that cluster. `--fixtures fixtures/demo.json` serves a made-up homelab instead, with no cluster at all; the screenshots in these docs come from it. `python3 fixtures/generate_demo.py` writes a fresh one, with publication dates relative to today.
+With a kubeconfig, Gjallarhorn reads that cluster. `--fixtures fixtures/demo.json` serves a made-up homelab instead, with no cluster at all. `python3 fixtures/generate_demo.py` writes a fresh one, with publication dates relative to today.
 
 For frontend work, run the backend on port 18080 and `npm run dev` in `web/`; Vite proxies `/api` to it.
 
